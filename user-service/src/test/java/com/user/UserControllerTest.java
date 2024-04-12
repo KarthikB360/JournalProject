@@ -35,8 +35,7 @@ public class UserControllerTest {
     @Test
     public void testCreateUser() throws Exception {
         User newUser = new User();
-        newUser.setFirstName("testuser");
-        newUser.setLastName("testuser");
+        newUser.setUserName("testuser");
         newUser.setEmail("testuser@example.com");
 
         Mockito.when(userService.createUser(Mockito.any(User.class))).thenReturn(newUser);
@@ -46,10 +45,8 @@ public class UserControllerTest {
                 .content(objectMapper.writeValueAsString(newUser)));
 
         result.andDo(print()).andExpect(status().isCreated())
-                .andExpect(jsonPath("$.firstName",
-                        is(newUser.getFirstName())))
-                .andExpect(jsonPath("$.lastName",
-                        is(newUser.getLastName())))
+                .andExpect(jsonPath("$.userName",
+                        is(newUser.getUserName())))
                 .andExpect(jsonPath("$.email",
                         is(newUser.getEmail())));
 
@@ -58,8 +55,7 @@ public class UserControllerTest {
     @Test
     public void testUpdateUser() throws Exception {
         User newUser = new User();
-        newUser.setFirstName("testuser");
-        newUser.setFirstName("testuser");
+        newUser.setUserName("testuser");
         newUser.setEmail("testuser@example.com");
 
         Mockito.when(userService.updateUser(Mockito.any(User.class))).thenReturn(newUser);
@@ -69,10 +65,8 @@ public class UserControllerTest {
                 .content(objectMapper.writeValueAsString(newUser)));
 
         result.andDo(print()).andExpect(status().isOk())
-                .andExpect(jsonPath("$.firstName",
-                        is(newUser.getFirstName())))
-                .andExpect(jsonPath("$.lastName",
-                        is(newUser.getLastName())))
+                .andExpect(jsonPath("$.userName",
+                        is(newUser.getUserName())))
                 .andExpect(jsonPath("$.email",
                         is(newUser.getEmail())));
     }

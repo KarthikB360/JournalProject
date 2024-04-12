@@ -1,5 +1,6 @@
 package com.user.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -16,9 +17,11 @@ public class User {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
     @Column
-    private String firstName;
-    @Column
-    private String lastName;
+    private String userName;
     @Column
     private String email;
+    @Column
+    private String password;
+    @Column
+    private String role;
 }

@@ -3,13 +3,17 @@ package com.user.service;
 import com.user.entity.EventType;
 import com.user.entity.User;
 import com.user.entity.UserEvent;
+import com.user.exception.CustomBadRequestException;
 import com.user.exception.CustomException;
 import com.user.exception.CustomNotFoundException;
 import com.user.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
 import java.util.Optional;
@@ -25,6 +29,9 @@ public class UserService {
     private KafkaEventPublisher kafkaEventPublisher;
 
     public User createUser(User user) throws CustomException {
+        PasswordEncoder encoder = new BCryptPasswordEncoder();
+        user.setPassword(encoder.encode(user.getPassword()));
+        user.setRole(user.getRole().toUpperCase());
         User savedUser = userRepository.save(user);
 
         publishEvent(savedUser, EventType.CREATED);
@@ -50,9 +57,14 @@ public class UserService {
 
     public User updateUser(User user) throws CustomException {
         User existingUser = getUserById(user.getId());
-        existingUser.setFirstName(user.getFirstName());
-        existingUser.setLastName(user.getLastName());
+        if (!StringUtils.hasText(user.getEmail())) {
+            throw new CustomBadRequestException("Invalid email");
+        }
+        if (!StringUtils.hasText(user.getPassword())) {
+            throw new CustomBadRequestException("Invalid password");
+        }
         existingUser.setEmail(user.getEmail());
+        existingUser.setPassword(user.getPassword());
         User updatedUser = userRepository.save(existingUser);
 
         publishEvent(updatedUser, EventType.UPDATED);
@@ -69,8 +81,7 @@ public class UserService {
 
     private void publishEvent(User user, EventType eventType) throws CustomException {
         log.info("Publishing event type {} for {}", eventType, user);
-        String userName = new StringBuilder().append(user.getFirstName()).append(user.getLastName()).toString();
-        UserEvent userEvent = UserEvent.builder().event(eventType.name()).userName(userName).email(user.getEmail()).build();
+        UserEvent userEvent = UserEvent.builder().event(eventType.name()).userName(user.getUserName()).email(user.getEmail()).build();
         kafkaEventPublisher.sendEventsToTopic(userEvent);
     }
 }
